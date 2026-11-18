@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LaserEyes - laser eyes for photos</title>
+<meta name="description" content="Add laser eyes to photos and optionally cover faces. Everything runs in your browser.">
+<link rel="canonical" href="https://lasereyes.oharek.cz/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LaserEyes">
+<meta property="og:title" content="LaserEyes - laser eyes for photos">
+<meta property="og:description" content="Bitcoin-style laser eyes, plus optional face cover. Open source, and photos never leave your browser.">
+<meta property="og:url" content="https://lasereyes.oharek.cz/">
+<meta property="og:image" content="https://lasereyes.oharek.cz/assets/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="LaserEyes - a dark illustration of a face with glowing red laser eyes">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LaserEyes - laser eyes for photos">
+<meta name="twitter:description" content="Bitcoin-style laser eyes, plus optional face cover. Open source, and photos never leave your browser.">
+<meta name="twitter:image" content="https://lasereyes.oharek.cz/assets/og.png">
+<meta name="twitter:image:alt" content="LaserEyes - a dark illustration of a face with glowing red laser eyes">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 24'%3E%3Crect width='40' height='24' rx='6' fill='%230a0a0b'/%3E%3Cpath d='M4 12s6-8 16-8 16 8 16 8-6 8-16 8S4 12 4 12Z' fill='none' stroke='%23ff4d2e' stroke-width='2.4'/%3E%3Ccircle cx='20' cy='12' r='4.4' fill='%23ff4d2e'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/styles.css?v=10">
+<script>
+  // Pick the UI language before first paint so Czech users don't see a flash of English.
+  try {
+    var stored = localStorage.getItem("lasereyes.lang");
+    var nav = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
+    var code = stored === "cs" || stored === "en" ? stored : (/^(cs|sk)/i.test(nav) ? "cs" : "en");
+    document.documentElement.lang = code;
+  } catch (e) {}
+</script>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 44 26" fill="none">
+          <path d="M3 13S9.7 4 22 4s19 9 19 9-6.7 9-19 9S3 13 3 13Z" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/>
+          <circle cx="22" cy="13" r="5.2" fill="currentColor"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <strong>LaserEyes</strong>
+        <span data-i18n="brand.tagline">laser eyes and face cover</span>
+      </span>
+    </div>
+
+    <div class="topbar-right">
+      <div class="lang-switch" id="langSwitch" role="group" data-i18n-aria="lang.aria" aria-label="Language">
+        <button class="lang-btn" data-lang="en" type="button" aria-label="English">EN</button>
+        <button class="lang-btn" data-lang="cs" type="button" aria-label="Čeština">CS</button>
+      </div>
+
+      <button id="engineStatus" class="engine" type="button" data-i18n-title="engine.label" title="Face detection">
+        <span class="engine-dot"></span>
+        <span id="engineText" data-i18n="engine.loading">starting...</span>
+      </button>
+
+      <button id="downloadAllBtn" class="btn btn-primary" type="button" disabled>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m0 0 4-4m-4 4L6 8M3 14v3h14v-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="topbar.downloadAll">Download all</span>
+      </button>
+
+      <a class="topbar-gh" href="https://github.com/Sogo165/lasereyes" target="_blank" rel="noopener noreferrer" data-i18n-title="oss.title" title="LaserEyes on GitHub">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" data-i18n-aria="dropzone.aria" aria-label="Add photos">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="dropzone.add">Add photos</span>
+        <small data-i18n="dropzone.hint">or drop them anywhere</small>
+      </div>
+      <input id="fileInput" type="file" accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp,.avif,.gif,.bmp,.tif,.tiff" multiple hidden>
+
+      <div class="library-head">
+        <span data-i18n="library.title">Photos</span>
+        <span class="count" id="libraryCount">0</span>
+      </div>
+
+      <div class="photo-list" id="photoList"></div>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-foot">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="8.5" width="12" height="8.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 8.5V6.5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span data-i18n="privacy.note">Photos stay in your browser. Nothing is uploaded.</span>
+        </div>
+        <a class="oss-link" href="https://github.com/Sogo165/lasereyes" target="_blank" rel="noopener noreferrer" data-i18n-title="oss.title" title="LaserEyes on GitHub">
+          <svg class="oss-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <span class="oss-text">
+            <strong data-i18n="oss.strong">Open source</strong>
+            <small data-i18n="oss.small">View on GitHub</small>
+          </span>
+          <svg class="oss-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </aside>
+
+    <section class="stage">
+
+      <div class="empty" id="emptyState">
+        <div class="empty-art" aria-hidden="true">
+          <div class="empty-glow"></div>
+          <svg viewBox="0 0 120 64" fill="none">
+            <path d="M8 32S25 9 60 9s52 23 52 23-17 23-52 23S8 32 8 32Z" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round"/>
+            <circle cx="60" cy="32" r="12" fill="currentColor"/>
+            <circle cx="44" cy="32" r="5" fill="currentColor" opacity=".75"/>
+            <circle cx="76" cy="32" r="5" fill="currentColor" opacity=".75"/>
+          </svg>
+        </div>
+        <h2 data-i18n="empty.title">Drop photos here</h2>
+        <p data-i18n="empty.text">Faces are found automatically, and the lasers land on the eyes. Tap anyone you want to change. Cover is optional.</p>
+        <button class="btn btn-primary btn-lg" id="emptyPickBtn" type="button" data-i18n="empty.button">Choose photos</button>
+        <span class="empty-note" data-i18n="empty.note">JPG, PNG, WebP, HEIC. Batch friendly.</span>
+        <span class="empty-privacy">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="8.5" width="12" height="8.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 8.5V6.5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span data-i18n="privacy.note">Photos stay in your browser. Nothing is uploaded.</span>
+        </span>
+      </div>
+
+      <div class="editor" id="editor" hidden>
+        <div class="toolbar">
+          <div class="seg" id="modeGroup" role="group" data-i18n-aria="mode.aria" aria-label="Cover mode">
+            <button class="seg-btn is-active" data-mode="lasers" type="button" data-i18n="mode.lasers">Lasers only</button>
+            <button class="seg-btn" data-mode="both" type="button" data-i18n="mode.both">Lasers + cover</button>
+            <button class="seg-btn" data-mode="cover" type="button" data-i18n="mode.cover">Cover only</button>
+          </div>
+
+          <div class="toolbar-cover">
+            <span data-i18n="cover.label">Cover</span>
+            <select id="coverSelect" class="select" data-i18n-aria="cover.aria" aria-label="Face cover type">
+              <option value="blur" data-i18n="cover.blur">Blur</option>
+              <option value="pixel" data-i18n="cover.pixel">Pixelate</option>
+              <option value="solid" data-i18n="cover.solid">Solid mask</option>
+              <option value="custom" data-i18n="cover.custom">Custom face</option>
+            </select>
+          </div>
+
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" id="addFaceBtn" type="button" data-i18n-aria="action.addFace" data-i18n-title="action.addFace" aria-label="Add face" title="Add face">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span data-i18n="action.addFace">Add face</span>
+            </button>
+            <button class="btn btn-ghost" id="resetPositionsBtn" type="button" data-i18n-aria="action.resetPositions" data-i18n-title="action.resetPositionsTitle" aria-label="Reset positions" title="Put all markers back where detection found them">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 3.5V8h-4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span data-i18n="action.resetPositions">Reset positions</span>
+            </button>
+            <button class="btn btn-ghost is-active" id="markersBtn" type="button" data-i18n-aria="action.markers" data-i18n-title="action.markersTitle" aria-label="Markers" title="Show or hide markers">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.4" fill="currentColor"/></svg>
+              <span data-i18n="action.markers">Markers</span>
+            </button>
+            <button class="btn btn-primary" id="downloadBtn" type="button">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m0 0 4-4m-4 4L6 8M3 14v3h14v-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span data-i18n="action.download">Download</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="canvas-area">
+          <div class="canvas-scroll" id="canvasScroll">
+            <div class="canvas-box" id="canvasBox">
+              <canvas id="canvas"></canvas>
+              <div class="overlay" id="overlay"></div>
+              <div class="canvas-loading" id="canvasLoading"><span class="spinner"></span> <span data-i18n="canvas.loading">Loading photo...</span></div>
+            </div>
+          </div>
+          <button class="zoom-chip" id="zoomChip" type="button" data-i18n-title="action.zoomReset" title="Reset zoom" hidden>100%</button>
+        </div>
+
+        <div class="statusbar">
+          <div class="hint" id="hint">Tap a face to turn the lasers on or off. Drag to move it, hold it to delete it.</div>
+          <div class="summary" id="summary"></div>
+        </div>
+
+        <div class="settings">
+          <label class="setting">
+            <span data-i18n="settings.core">Laser core</span>
+            <input type="range" id="laserRange" min="0.5" max="1.7" step="0.02" value="1" data-i18n-aria="settings.core" data-i18n-title="settings.coreTitle" title="Size of the bright core, the eyes themselves">
+            <output id="laserOut">100%</output>
+          </label>
+          <label class="setting">
+            <span data-i18n="settings.glow">Laser glow</span>
+            <input type="range" id="glowRange" min="0.3" max="1.6" step="0.02" value="1" data-i18n-aria="settings.glow" data-i18n-title="settings.glowTitle" title="Size and strength of the halo, rays and side glow">
+            <output id="glowOut">100%</output>
+          </label>
+          <div class="setting setting-color">
+            <span data-i18n="settings.color">Laser color</span>
+            <div class="laser-colors" id="laserColors" role="group" data-i18n-aria="settings.color" aria-label="Laser color">
+              <button class="laser-swatch" data-color="original" type="button" data-i18n-aria="settings.colorOriginal" data-i18n-title="settings.colorOriginal" aria-label="Original" title="Original"></button>
+              <button class="laser-swatch" data-color="red" type="button" data-i18n-aria="settings.colorRed" data-i18n-title="settings.colorRed" aria-label="Red" title="Red"></button>
+              <button class="laser-swatch" data-color="yellow" type="button" data-i18n-aria="settings.colorYellow" data-i18n-title="settings.colorYellow" aria-label="Yellow" title="Yellow"></button>
+              <label class="laser-swatch laser-swatch-custom" id="laserCustomSwatch" data-i18n-title="settings.colorCustom" title="Custom color">
+                <input id="laserColorInput" type="color" value="#ff4d2e" data-i18n-aria="settings.colorCustom" aria-label="Custom laser color">
+              </label>
+            </div>
+          </div>
+          <label class="setting">
+            <span data-i18n="settings.coverSize">Cover size</span>
+            <input type="range" id="coverRange" min="0.7" max="1.5" step="0.01" value="1" data-i18n-aria="settings.coverSize" data-i18n-title="settings.coverSizeTitle" title="How much of the face and its surroundings is covered">
+            <output id="coverOut">100%</output>
+          </label>
+          <label class="setting">
+            <span data-i18n="settings.coverStrength">Cover strength</span>
+            <input type="range" id="blurRange" min="0.1" max="2.5" step="0.02" value="1" data-i18n-aria="settings.coverStrength" data-i18n-title="settings.strengthTitle" title="Blur radius or pixel block size">
+            <output id="blurOut">100%</output>
+          </label>
+          <button class="custom-face-btn" id="customFaceBtn" type="button" hidden>
+            <span class="custom-face-thumb" id="customFaceThumb" hidden><img id="customFaceImg" alt=""></span>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="7.4" cy="8" r="1" fill="currentColor"/><circle cx="12.6" cy="8" r="1" fill="currentColor"/><path d="M7 12.2c.9.9 1.8 1.3 3 1.3s2.1-.4 3-1.3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span id="customFaceLabel" data-i18n="custom.choose">Choose face photo</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" id="resetBtn" type="button" data-i18n="action.reset">Reset</button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<div class="progress" id="progress" hidden>
+  <span class="spinner"></span>
+  <span id="progressText"></span>
+</div>
+
+<div class="face-modal" id="faceModal" hidden>
+  <div class="face-dialog" role="dialog" aria-modal="true" aria-labelledby="faceModalTitle">
+    <h3 id="faceModalTitle"></h3>
+    <p id="faceModalText"></p>
+    <div class="face-grid" id="faceGrid"></div>
+    <div class="crop-wrap" id="cropWrap" hidden>
+      <canvas id="cropCanvas"></canvas>
+      <div class="crop-box" id="cropBox" hidden></div>
+    </div>
+    <div class="face-modal-actions">
+      <button class="btn btn-ghost" id="faceCancelBtn" type="button" data-i18n="custom.cancel">Cancel</button>
+      <button class="btn btn-primary" id="faceUseBtn" type="button" data-i18n="custom.useSelection" hidden>Use selection</button>
+    </div>
+  </div>
+</div>
+
+<input id="faceInput" type="file" accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp,.avif,.bmp,.tif,.tiff" hidden>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script type="module" src="assets/js/app.js?v=20"></script>
+</body>
+</html>

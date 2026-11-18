@@ -1,0 +1,22 @@
+# generated / local only
+dist/
+test/
+
+# unrelated local projects (not part of LaserEyes)
+spoiler-shield/
+muted-slova/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# secrets / logs
+.env
+.env.*
+*.log
+
+# dependencies (none needed, but just in case)
+node_modules/
